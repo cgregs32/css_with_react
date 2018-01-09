@@ -1,5 +1,5 @@
 import React from 'react';
-import { Header, Button, Segment, Card, Icon, Grid } from 'semantic-ui-react';
+import { Header, Button, Segment, Card, Icon, Grid, Label } from 'semantic-ui-react';
 import styled, { keyframes } from 'styled-components';
 import HeaderText from './styled/HeaderText';
 import axios from 'axios';
@@ -62,17 +62,32 @@ const Truncated = styled.div`
   text-overflow: ellipsis;
 `
 
+const SearchBox = styled.input`
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px;
+`
+
 class App extends React.Component{
-  state = { repos: [] }
+  state = { repos: [], visible: [] }
 
   componentDidMount(){
-    this.setState({ repos })
+    this.setState({ repos, visible: repos })
     // axios.get('https://api.github.com/users/cgregs32/repos?sort=create')
-    //   .then(res => this.setState({ repos: res.data }))
+    //   .then(res => this.setState({ repos: res.data, visible: res.data }))
+  }
+
+  search = () => {
+    const { repos } = this.state;
+    const regex = new RegExp(this.searchTerm.value)
+    if (this.searchTerm.value === '')
+      this.setState({ visible: repos })
+    else
+      this.setState({ visible: repos.filter( r => regex.test(r.full_name) ) })
   }
 
   mapRepos = () => {
-    return this.state.repos.map(r => {
+    return this.state.visible.map(r => {
       const CardType = r.open_issues > 0 ? IssueCard: StyledCard
       return (
         <Grid.Column key={r.id} width={4}>
@@ -111,6 +126,12 @@ class App extends React.Component{
         </Header>
         <Segment as={Transparent}>
           <Header as={HeaderText}>Projects</Header>
+          <Label>Search</Label>
+          <SearchBox
+            onChange={this.search}
+            innerRef={ n => this.searchTerm = n}
+          >
+          </SearchBox>
           <Grid>
             <Grid.Row>
               {this.mapRepos()}
